@@ -1,20 +1,48 @@
 <template>
   <div class="page-home-container page-container">
     <div class="tour-info">
-      <img src="@/assets/img/event-thumbnail.jpg"/>
+      <div class="s_thumbnail">
+        <img src="@/assets/img/event-thumbnail.jpg"/>
+      </div>
       <div class="s_info">
-        <p>Justin Bieber Justic World Tour 2022 - Philippines</p>
+        <div class="s_venuename">Justin Bieber Justic World Tour 2022 - Philippines</div>
         <div class="s_venuedatetime">
-            <p class="s_venue v_select">
+            <div class="s_venue v_select">
               <svg-icon class="my-icon" icon="location"/>
-              <span>Newport Performing Arts Theatre</span>
-            </p>
-            <p class="s_datetime">
-              <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="none" xmlns:v="https://vecta.io/nano">
-              <path fill-rule="evenodd" d="M3.609 1.864v.364H2.555 1.5v1.093 1.093h6 6V3.322 2.229h-1.055-1.055v-.364V1.5h-.351-.352v.364.364H7.5 4.313v-.364V1.5h-.352-.352v.364zm.703 1.093v.729h-.352-.352v-.729-.729h.352.352v.729zm7.078 0v.729h-.351-.352v-.729-.729h.352.351v.729zM1.5 9.322V13.5h6 6V9.322 5.144h-6-6v4.178zm3.094-2.308v.632h-.621-.621v-.632-.632h.621.621v.632zm2.344 0v.632h-.621-.621v-.632-.632h.621.621v.632zm2.367 0v.632h-.621-.621v-.632-.632h.621.621v.632zm2.344 0v.632h-.621-.621v-.632-.632h.621.621v.632zM4.594 9.213v.644l-.615-.006-.615-.006-.006-.638-.006-.638h.621.621v.644zm2.344 0v.644l-.615-.006-.615-.006-.006-.638-.006-.638h.621.621v.644zm2.362-.006l-.006.638-.615.006-.615.006v-.644-.644h.621.621l-.006.638zm2.344 0l-.006.638-.615.006-.615.006v-.644-.644h.621.622l-.006.638zm-7.049 2.193v.644l-.615-.006-.615-.006-.006-.638-.006-.638h.621.621v.644zm2.344 0v.644l-.615-.006-.615-.006-.006-.638-.006-.638h.621.621v.644zm2.362-.007l-.006.638-.615.006-.615.006v-.644-.644h.621.621l-.006.638zm2.344 0l-.006.638-.615.006-.615.006v-.644-.644h.621.622l-.006.638z" fill="#4a4a4a"/>
-              </svg>
-              <span></span>
-            </p>
+              <div>Newport Performing Arts Theatre</div>
+            </div>
+            <div class="s_datetime v_select">
+              <svg-icon class="my-icon" icon="calendar"/>
+              <div>
+                <span v-html="dateHtml.dateDay"></span>
+                /
+                <span v-html="dateHtml.dateTimeDuration"></span>
+              </div>
+            </div>
+        </div>
+      </div>
+    </div>
+    <div class="chose-ticket-box">
+      <div class="box-left">
+        <div class="select-tit">Select A Section</div>
+        <div class="select-list"></div>
+        <div class="section-confirm"></div>
+      </div>
+      <div class="box-right">
+        <div class="fixed-box-right">
+          <div class="subtotal item">
+            <div class="left">Subtotal</div>
+            <div class="right">PHP 0.00</div>
+          </div>
+          <div class="booking-fee item">
+            <div class="left">Booking Fee</div>
+            <div class="right">PHP 0.00</div>
+          </div>
+          <div class="total item">
+            <div class="left">Total</div>
+            <div class="right">PHP 0.00</div>
+          </div>
+          <div class="checkout-btn">Check Out</div>
         </div>
       </div>
     </div>
@@ -26,22 +54,83 @@ export default {
   name: 'Home',
   data(){
     return{
-
+      dateHtml:''
     }
   },
   mounted(){
-    this.tesAjax();
+    this.getDate();
+    // this.testAjax();
   },
   methods:{
-    tesAjax(){
+    getDate(){
       this.$http.getHttp({
-        name:'geteventshowdatetime'
-      },(data,success)=>{
+        name:'geteventshowdatetime',
+      },(res,success)=>{
         if(success){
-          console.log("data===",data);
+          console.log("res===",res);
+          this.dateHtml = res.data[0][0];
+        }
+      })
+    },
+    testAjax(){
+      this.$http.getHttp({
+        name:'geteventoverviewseatmap',
+        params:{
+          api:'geteventoverviewseatmap',
+          pid:1722018
+        }
+      },(res,success)=>{
+        if(success){
+          console.log("res===",res);
         }
       })
     }
   }
 }
 </script>
+<style lang="scss">
+.page-home-container{
+  .tour-info{
+    padding: 15px 30px;
+    background: #F5F5F5;
+    display: flex;
+    box-sizing: border-box;
+    .s_thumbnail{
+      width: 78px;
+      margin-right: 14px;
+      img{
+        width: 100%;
+        display: block;
+      }
+    }
+    .s_info{
+      width: calc(100% - 92px);
+      margin-top: -4px;
+      text-align: left;
+      font-size: 0.813rem;
+      line-height: 1.385em;
+      .s_venuedatetime{
+        display: flex;
+        margin-top: 3px;
+        .v_select{
+          width: 50%;
+          box-sizing: border-box;
+          padding-right: 20px;
+          color: #0098FF;
+          position: relative;
+          margin-top: 4px;
+          .svg-icon{
+            position: absolute;
+            left: 0px;
+            top: 50%;
+            transform: translateY(-50%);
+          }
+          div{
+            padding-left: 1.2em;
+          }
+        }
+      }
+    }
+  }
+}
+</style>

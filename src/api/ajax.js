@@ -51,7 +51,7 @@ function apiAxios(method, url, params,success, failure) {
         }
     })
     .catch(function (err) {
-        let res = err.response 
+        let res = err.response
         if (res) {
             window.alert('api error, HTTP CODE: ' + res.status)
         }
@@ -63,7 +63,7 @@ function successError(res) {
         setLayer(res.data)
         return false;
     }else if(res.status != 1){
-        setLayer(res.data)
+        setLayer(res.errortxt)
         return false;
     }
     return true
