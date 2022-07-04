@@ -50,7 +50,41 @@
             <div>For patrons who require special access, please contact the SISTIC Hotline at <a href="tel:+65 6348 5555">+65 6348 5555</a></div>
           </div>
           <div class="confirm-btn">
-            <div class="btn" :class="confirmActive?'active':''">Confirm Section</div>
+            <div class="btn" :class="confirmActive?'active':''" @click="confirmAct">Confirm Section</div>
+          </div>
+        </div>
+        <div v-if="seatAllocation">
+          <div class="select-tit notfirst">Select Seat Allocation</div>
+          <div class="ticket-info">
+            <div class="info-left">
+              <div class="label">Category:</div>
+              <div class="value">{{Category}}</div>
+            </div>
+            <div class="info-right">
+              <div class="label">Section:</div>
+              <div class="value">{{Section}}</div>
+            </div>
+          </div>
+          <div class="select-list">
+            <div class="select-item">
+              <div class="label">How many tickets would you like?</div>
+              <select @change="choseQuantity">
+                <option value="0">0</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="seat-info">
+          <div class="seat-notice">{{seatNotice}}</div>
+          <h4>Seat(s) assigned:</h4>
+          <div class="s_ticketsinfo">
+            <div class="s_item" v-for="(item,m) in seatListing" :key="'ticket_seat_'+m">
+              Row {{item.seatRowAlias}},Seat: {{item.seatAlias[0]}}<span v-if="item.seatAlias[1]">,{{item.seatAlias[1]}}</span>
+            </div>
           </div>
         </div>
       </div>
@@ -72,6 +106,7 @@
         </div>
       </div>
     </div>
+    <common-modal :showmoadl="modalShow" type="warning" title="Change Selection" content="Would you like to release your current selection and search again?" @return-action="changeTicketsQuantity"/>
   </div>
 </template>
 
@@ -86,6 +121,17 @@ export default {
       subSectionList:[],
       boxFix:true,
       confirmActive:false,
+      Category:null,
+      Section:null,
+      seatAllocation:false,
+      modalShow:false,
+      seatNotice:null,
+      seatListing:[],
+      seatSectionId:null,
+      ticketsQuantity:0,
+      priceCatId:null,
+      mode:null,
+      _ticketsQuantity:0,
     }
   },
   mounted(){
@@ -104,11 +150,62 @@ export default {
     })
   },
   methods:{
+    choseQuantity(e){
+      this.modalShow = true;
+      this._ticketsQuantity = e.target.value;
+    },
+    changeTicketsQuantity(res){
+      if(res){
+        this.ticketsQuantity = this._ticketsQuantity;
+        this.selecTicketsNum();
+        this.modalShow = false;
+      }
+      else{
+        this.modalShow = false;
+      }
+    },
+    selecTicketsNum(){
+      this.$http.getHttp({
+        name:'getSeatOffer',
+        params:{
+          api:'getSeatOffer',
+          pid:1722018,
+          qty:this.ticketsQuantity,
+          priceCatId:this.priceCatId,
+          seatSectionId:this.seatSectionId,
+          mode:this.mode
+        }
+      },(res,success)=>{
+        if(success){
+          console.log("res===",res);
+          this.seatAllocation = true;
+          this.seatNotice = res.data.seatNotice;
+          this.seatListing = res.data.seatListing;
+        }
+      })
+    },
+    confirmAct(){
+      if(!this.confirmActive)return;
+      this.$http.getHttp({
+        name:'getSeatSectionAvailability',
+        params:{
+          api:'getSeatSectionAvailability',
+          pid:1722018,
+          seatSectionId:this.seatSectionId
+        }
+      },(res,success)=>{
+        if(success){
+          console.log("res===",res);
+          this.seatAllocation = true;
+        }
+      })
+    },
     choseSeat(e){
       console.log(e.target.value);
       let index = e.target.value;
       if(index>-1){
         this.subSectionList = this.seatSectionList[index].seatSectionList;
+        this.Category = this.seatSectionList[index].priceCatAlias;
       }
       else{
         this.subSectionList = [];
@@ -119,6 +216,9 @@ export default {
       let index = e.target.value;
       if(index>-1){
         this.confirmActive = true;
+        this.seatSectionId = this.subSectionList[index].seatSectionId;
+        this.priceCatId = this.subSectionList[index].priceCategoryId;
+        this.Section = this.subSectionList[index].seatSectionAlias;
       }
       else{
         this.confirmActive = false;
@@ -146,6 +246,7 @@ export default {
           console.log("res===",res);
           this.imageURL = res.data.imageURL;
           this.seatSectionList = res.data.seatSectionList;
+          this.mode = res.data.mode.includes('HS') ? 'HS':'BA';
         }
       })
     }
@@ -215,6 +316,32 @@ export default {
         font-family: 'Agency FB';
         font-size: 1.875rem;
         font-weight: 400;
+        &.notfirst{
+          margin-top: 49px;
+        }
+      }
+      .ticket-info{
+        background: #F5F5F5;
+        box-sizing: border-box;
+        padding: 16px 14px;
+        display: flex;
+        margin-top: 20px;
+        margin-bottom: 23px;
+        .info-left,.info-right{
+          font-size: 0.813rem;
+          line-height: 1.385em;
+          color: #4A4A4A;
+          width: 50%;
+          .label{
+            font-weight: bold;
+          }
+        }
+      }
+      .seat-info{
+        background: #F5F5F5;
+        box-sizing: border-box;
+        padding: 0 14px 25px;
+        margin-top: 30px;
       }
       .select-list{
         .select-item{
