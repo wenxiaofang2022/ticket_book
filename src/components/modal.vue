@@ -15,26 +15,25 @@
 </template>
 
 <script>
-import { defineProps, computed } from "vue";
-const props = defineProps({
-  showmoadl:{
-    type: Boolean,
-    required: true
-  },
-  type: {
-    type: String,
-    required: true
-  },
-  title:{
-    type: String,
-    required: true
-  },
-  content:{
-    type: String,
-    required: true
-  }
-})
 export default {
+    props:{
+      showmoadl:{
+        type: Boolean,
+        required: true
+      },
+      type: {
+        type: String,
+        required: true
+      },
+      title:{
+        type: String,
+        required: true
+      },
+      content:{
+        type: String,
+        required: true
+      }
+    },
     methods:{
         modalClick(res){
           console.log(res);
