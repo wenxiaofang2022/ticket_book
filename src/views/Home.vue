@@ -129,7 +129,7 @@
             <div class="left">Total</div>
             <div class="right">PHP {{_Total}}</div>
           </div>
-          <div class="checkout-btn" :class="checkoutActive?'active':''">Check Out</div>
+          <div class="checkout-btn" :class="checkoutActive?'active':''" @click="addToCart">Check Out</div>
         </div>
       </div>
     </div>
@@ -167,6 +167,7 @@ export default {
       _BookingFee:0,
       _Total:0,
       checkoutActive:false,
+      inventoryList:[],
     }
   },
   mounted(){
@@ -185,6 +186,41 @@ export default {
     })
   },
   methods:{
+    //加入购物车
+    addToCart(){
+      console.log("selectQuantityObj",this.selectQuantityObj);
+      console.log("ticketTypeList",this.ticketTypeList);
+      let _priceClassMap = [];
+      let _inventoryList = [];
+      this.ticketTypeList.map((item,index)=>{
+        if(this.selectQuantityObj[index].value>0){
+          _priceClassMap.push(item.priceClassCode+':'+this.selectQuantityObj[index].value);
+        }
+      })
+      this.inventoryList.map(item=>{
+        _inventoryList.push(item.inventoryId);
+      })
+      this.$http.getHttp({
+        name:'addtocart',
+        params:{
+          api:'addtocart',
+          cartGuid:'',
+          pid:1722018,
+          priceClassMap:_priceClassMap.join(','),
+          priceCatId:this.priceCatId,
+          seatSectionId:this.seatSectionId,
+          mode:this.mode,
+          inventoryList:_inventoryList.join(',')
+        }
+      },(res,success)=>{
+        if(success){
+          console.log("res===",res);
+          this.$router.push({
+            path: '/ShopCar/'+res.data.cartGuid+'/'+res.data.expiryTime,
+          });
+        }
+      })
+    },
     calcQuantity(index){
       let val = this.selectQuantityObj[index].value;
       let return_val = 0;
@@ -271,6 +307,7 @@ export default {
           this.seatAllocation = true;
           this.seatNotice = res.data.seatNotice;
           this.seatListing = res.data.seatListing;
+          this.inventoryList = res.data.setsReservedList[0].setsReserved;
           this.showSeatInfo = true;
         }
         else{

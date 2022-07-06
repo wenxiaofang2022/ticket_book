@@ -8,7 +8,7 @@ const routes = [
     component: Home
   },
   {
-    path: '/ShopCar',
+    path: '/ShopCar/:cartGuid/:expiryTime',
     name: 'ShopCar',
     component: () => import('../views/ShopCar.vue')
   }
