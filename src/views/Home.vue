@@ -22,7 +22,7 @@
         </div>
       </div>
     </div>
-    <div class="chose-ticket-box">
+    <div class="chose-ticket-box" v-if="showHome">
       <div class="box-left">
         <div class="select-tit">Select A Section</div>
         <div class="select-list">
@@ -133,15 +133,127 @@
         </div>
       </div>
     </div>
+    <div class="shop-car-container" v-if="showCart">
+      <div class="nodata-box" v-if="cartNodata">
+        <div class="text">Your shopping cart is empty</div>
+        <div class="btn active" @click="goShopping">Continue Shopping</div>
+      </div>
+      <div class="cart-box" v-if="cartNodata">
+        <div class="cart-part">
+          <div class="part-tit">Shopping Cart<a class="go-shopping"></a></div>
+          <div class="part-content bg-gray">
+            <div class="tickets-info">
+              <div class="eventName">{{eventName}}</div>
+              <div class="venue"><svg-icon class="my-icon" icon="location"/>{{venue}}</div>
+              <div class="date"><svg-icon class="my-icon" icon="calendar"/>{{dateDay}} / {{dateTimeDuration}}</div>
+            </div>
+            <div class="tickets-list">
+              <div class="ticket-item" v-for="(item,m) in lineItemList" :key="'ticket_item_'+m">
+                <div class="item-row">
+                  <div class="label">Ticket Details</div>
+                  <div class="content">
+                    Level: {{item.product.level}}, Section: {{item.product.section}}<br/>Row: {{item.product.row}}, Seats: {{item.product.seatNo.join(', ')}}
+                  </div>
+                </div>
+                <div class="item-row">
+                  <div class="label">Ticket Type</div>
+                  <div class="content">{{item.priceclass.priceClassName}}</div>
+                </div>
+                <div class="item-row">
+                  <div class="label">Qty</div>
+                  <div class="content">{{item.quantity}}</div>
+                </div>
+                <div class="item-row">
+                  <div class="label">Unit Price</div>
+                  <div class="content">{{item.unitPrice.formatted}}</div>
+                </div>
+                <div class="item-row">
+                  <div class="label">Booking Fee</div>
+                  <div class="content">{{item.bookingFee.formatted}}</div>
+                </div>
+                <div class="item-row total">
+                  <div class="label">{{item.subTotal.formatted}}</div>
+                  <div class="content">
+                    <svg-icon class="my-icon" icon="delete"/>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="part-totalamount">
+            <div class="item-row">
+              <div class="label">Total Amount</div>
+              <div class="content">
+                <span class="s_price">{{lineItemTotal.formatted}}</span>
+                <span>inclusive of taxes</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="cart-part">
+          <div class="part-tit">Delivery Method</div>
+          <div class="part-desc">Please choose a delivery method</div>
+          <div class="part-content"></div>
+        </div>
+        <div class="cart-part">
+          <div class="part-tit">Payment Method</div>
+          <div class="part-content"></div>
+        </div>
+        <div class="cart-part">
+          <div class="terms-list" v-if="termsCheckList&&termsCheckList.length>0">
+            <div class="terms-item" v-for="(item,m) in termsCheckList" :key="'terms_'+m">
+              <div class="part-content terms-content">
+                <div class="part-tit">{{item.title}}</div>
+                <div class="part-subtit">{{item.subtit}}</div>
+                <div class="part-terms-desc">{{item.desc}}</div>
+                <div class="part-checkbox" v-if="item.checkobj" @click="changeChecked(m)">
+                  <span class="check-box-target" :class="item.checked?'active':''"></span>
+                  <span>{{item.checkobj.label}}</span>
+                  <template v-if="item.checkobj.item">
+                    <a :href="item.checkobj.item.value">{{item.checkobj.item.key}}</a>
+                  </template>
+                  <span>{{item.checkobj.suffix}}</span>
+                </div>
+                <div class="part-rules" v-if="item.rulelist&&item.rulelist.length>0">
+                  <div class="rule-item" v-for="(tmp,n) in item.rulelist" :key="'terms_rule_'+n">
+                    <span class="rule-index">{{n+1}}.</span>{{tmp}}
+                  </div>
+                </div>
+                <div class="part-checkbox no-checkbox" v-if="item._checkobj">
+                  <span>{{item._checkobj.label}}</span>
+                  <template v-if="item._checkobj.item">
+                    <a :href="item._checkobj.item.value">{{item._checkobj.item.key}}</a>
+                  </template>
+                  <span>{{item._checkobj.suffix}}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="fixed-timer">
+        <div class="s_fixed">
+          <div class="s_time">
+            <span class="s_icon">
+              <svg-icon class="my-icon" icon="timer"/>
+            </span>
+            <span class="s_timeleft">00:00</span>
+          </div>
+          <span class="s_text">Time left to complete purchase</span>
+        </div>
+      </div>
+    </div>
     <common-modal :showmoadl="modalShow" type="warning" title="Change Selection" content="Would you like to release your current selection and search again?" @return-action="changeTicketsQuantity"/>
   </div>
 </template>
 
 <script>
+import staticData from '@/api/test.js';
 export default {
   name: 'Home',
   data(){
     return{
+      //home
       dateHtml:'',
       imageURL:null,
       seatSectionList:[],
@@ -168,11 +280,74 @@ export default {
       _Total:0,
       checkoutActive:false,
       inventoryList:[],
+      //shopcart
+      cartGuid:'',
+      expiryTime:'',
+      eventName:'',
+      venue:'',
+      dateDay:'',
+      dateTimeDuration:'',
+      lineItemList:[],
+      lineItemTotal:{},
+      deliveryMethodList:[],
+      paymentMethodList:[],
+      termsCheckList:[
+        {
+          checked:false,
+          title:'Event Terms & Conditions',
+          subtit:'Justin Bieber Justic World Tour 2022 - Philippines',
+          desc:'All Participants must read, acknowledge and agree to waive, discharge and release from liability. In conseration of my participation in any way in the above event.',
+          checkobj:{
+            label:'I have read and accept the ',
+            item:{
+              key:'Terms and Conditions',
+              value:'https://www.sistic.com.sg/terms-and-conditions?_ga=2.10860093.86919835.1655912938-2052395521.1648466179'
+            }
+          }
+        },
+        {
+          checked:false,
+          title:'Subscription',
+          desc:'I wish to receive marketing information by email from, and agree to the collection, use and disclosure of my personal data for such marketing by:',
+          checkobj:{
+            label:'SISTIC and its marketing agents for the event(s) purchased and other sales, promotions, discounts, contests, or events by SISTIC',
+          }
+        },
+        {
+          checked:false,
+          title:'Conditions of Sale, Use or Personal Data',
+          checkobj:{
+            label:'I have read and accept SISTIC ',
+            item:{
+              key:'Terms & Conditions',
+              value:'https://www.sistic.com.sg/terms-and-conditions?_ga=2.10860093.86919835.1655912938-2052395521.1648466179',
+            },
+            suffix:' of Sale and consent to:'
+          },
+          rulelist:[
+            'the collection of my personal data by SISTIC both in its own capacity, and as ticketing agent and data intermediary of the promoter(s) and venue manager(s) of the event(s) purchased; and',
+            'the collection, use and disclosure of such personal data by SISTIC, its agents and the promoter(s) and venue manager(s),'
+          ],
+          _checkobj:{
+            label:"in accordance with SISTIC's ",
+            item:{
+              key:'Privacy Policy',
+              value:'https://www.sistic.com.sg/privacy-policy?_ga=2.214638110.86919835.1655912938-2052395521.1648466179',
+            },
+            suffix:'. No refund, exchange of tickets is allowed once your booking is confirmed.'
+          },
+        }
+      ],
+      //controll bar
+      showHome:false,
+      showCart:true,
+      cartNodata:true,
     }
   },
   mounted(){
-    this.getDate();
-    this.getSeatData();
+    // this.getDate();
+    // this.getSeatData();
+    this.geInitData();
     window.addEventListener('scroll',()=>{
       let scrollTop = document.documentElement.scrollTop || window.pageYOffset || document.body.scrollTop;
       let ticket_scrollTop = sessionStorage.getItem('ticket_scrollTop')||0;
@@ -186,7 +361,59 @@ export default {
     })
   },
   methods:{
-    //加入购物车
+    //shopcart part
+    goShopCart(){
+      this.showHome = false;
+      this.showCart = true;
+      this.geInitData();
+    },
+    changeChecked(m){
+      this.termsCheckList[m].checked = !this.termsCheckList[m].checked;
+    },
+    geInitData(){
+      console.log("staticData",staticData);
+      let res = staticData;
+      this.eventName = res.data.eventName;
+      this.venue = res.data.venue;
+      this.dateDay = res.data.dateDay;
+      this.dateTimeDuration = res.data.dateTimeDuration;
+      this.lineItemList = res.data.lineItemList;
+      this.lineItemTotal = res.data.lineItemTotal;
+      this.deliveryMethodList = res.data.deliveryMethodList;
+      this.paymentMethodList = res.data.paymentMethodList;
+      this.expiryTime = res.data.expiryTime;
+      return;
+      this.$http.getHttp({
+        name:'getcart',
+        params:{
+          api:'getcart',
+          cartguid:this.cartGuid,
+        }
+      },(res,success)=>{
+        if(success){
+          console.log("res===",res);
+          this.eventName = res.data.eventName;
+          this.venue = res.data.venue;
+          this.dateDay = res.data.dateDay;
+          this.dateTimeDuration = res.data.dateTimeDuration;
+          this.lineItemList = res.data.lineItemList;
+          this.lineItemTotal = res.data.lineItemTotal;
+          this.deliveryMethodList = res.data.deliveryMethodList;
+          this.paymentMethodList = res.data.paymentMethodList;
+          this.expiryTime = res.data.expiryTime;
+        }
+      })
+    },
+    goShopping(){
+      // this.$router.push({
+      //   path: '/'
+      // });
+    },
+    //home part
+    goHomePage(){
+      this.showHome = true;
+      this.showCart = false;
+    },
     addToCart(){
       console.log("selectQuantityObj",this.selectQuantityObj);
       console.log("ticketTypeList",this.ticketTypeList);
@@ -215,9 +442,11 @@ export default {
       },(res,success)=>{
         if(success){
           console.log("res===",res);
-          this.$router.push({
-            path: '/ShopCar/'+res.data.cartGuid+'/'+res.data.expiryTime,
-          });
+          this.cartGuid = res.data.cartGuid;
+          this.goShopCart();
+          // this.$router.push({
+          //   path: '/ShopCar/'+res.data.cartGuid+'/'+res.data.expiryTime,
+          // });
         }
       })
     },
@@ -455,299 +684,7 @@ export default {
       }
     }
   }
-  .chose-ticket-box{
-    max-width: 1060px;
-    margin: 0 auto;
-    text-align: left;
-    padding: 0px 30px 60px;
-    .box-left{
-      max-width:690px;
-      width: calc(100% - 288px);
-      box-sizing: border-box;
-      padding-right: 30px;
-      padding-top: 27px;
-      text-align: left;
-      .select-tit{
-        font-family: 'Agency FB';
-        font-size: 1.875rem;
-        font-weight: 400;
-        &.notfirst{
-          margin-top: 49px;
-        }
-      }
-      .s_tickettypes{
-        background: #F5F5F5;
-        box-sizing: border-box;
-        padding: 15px 14px 30px;
-        .s_tickettype{
-          margin-top: 25px;
-          &:nth-child(1){
-            margin-top: 19px;
-          }
-          .type_detail{
-            display: flex;
-            align-items: center;
-            font-family: 'Agency FB';
-            font-weight: 400;
-            font-size: 1.250rem;
-            line-height: 1.250em;
-            .s_help{
-              display: inline-block;
-              width: 15px;
-              height: 15px;
-              background: url('@/assets/img/icon-help.svg') center bottom no-repeat;
-              background-size: 15px;
-              margin-left: 5px;
-              position: relative;
-              cursor: pointer;
-              .s_helpinfo{
-                position: absolute;
-                top: -12px;
-                left: 25px;
-                background: #151009;
-                color: #FCFCFC;
-                font-family: 'Rubik', sans-serif;
-                font-weight: 300;
-                font-size: 0.750rem;
-                line-height: 1.417em;
-                width: 165px;
-                box-sizing: border-box;
-                padding: 11px 14px;
-                cursor: pointer;
-                display: none;
-                &::after {
-                  content:'';
-                  display:block;
-                  position:absolute;
-                  top:12px;
-                  left:-8px;
-                  width:0;
-                  height:0;
-                  border-top:7px solid transparent;
-                  border-bottom:7px solid transparent;
-                  border-right:10px solid #151009;
-                }
-              }
-              &:hover{
-                .s_helpinfo{
-                  display: block;
-                }
-              }
-            }
-            .s_price{
-              font-family: 'Rubik', sans-serif;
-              font-size: 0.938rem;
-              line-height: 1.467em;
-              font-weight: 300;
-              padding-left: 8px;
-            }
-          }
-          .type_select{
-            margin-top: 6px;
-            .s_label{
-              font-size: 0.813rem;
-              line-height: 1.385em;
-              color: #4A4A4A;
-            }
-            .s_select{
-              margin-top: -4px;
-              display: block;
-              box-sizing: border-box;
-              width: 100%;
-              height: 40px;
-              padding: 0;
-              font-size: 0.938rem;
-              font-weight: 600;
-              line-height: 39px;
-              border: none;
-              border-bottom: 1px dotted #4A4A4A;
-              outline: 0;
-              border-radius: 0;
-              -webkit-appearance: none;
-              -moz-appearance: none;
-              appearance: none;
-              background: url('@/assets/img/icon-arrowselect.svg') center right no-repeat;
-            }
-          }
-        }
-      }
-      .ticket-info{
-        background: #F5F5F5;
-        box-sizing: border-box;
-        padding: 16px 14px;
-        display: flex;
-        margin-top: 20px;
-        margin-bottom: 23px;
-        .info-left,.info-right{
-          font-size: 0.813rem;
-          line-height: 1.385em;
-          color: #4A4A4A;
-          width: 50%;
-          .label{
-            font-weight: bold;
-          }
-        }
-      }
-      .seat-info{
-        background: #F5F5F5;
-        box-sizing: border-box;
-        padding: 0 14px 25px;
-        margin-top: 30px;
-        .seat-notice{
-          background: #FA3550;
-          width: calc(100% + 28px);
-          transform: translateX(-14px);
-          box-sizing: border-box;
-          padding: 15px 14px;
-          font-size: 0.938rem;
-          line-height: 1.467em;
-          color: #FCFCFC;
-          font-weight: 600;
-          // margin-bottom: -25px;
-        }
-        .seat-tit{
-          padding-top: 22px;
-          font-family: 'Agency FB';
-          font-weight: 400;
-          font-size: 1.250rem;
-          line-height: 1.250em;
-        }
-        .s_ticketsinfo{
-          margin-top: 9px;
-          margin-bottom: -1px;
-          .s_item{
-            font-weight: bold;
-          }
-        }
-      }
-      .confirm-btn{
-          padding-top: 25px;
-          .btn{
-            width: 288px;
-            margin-left: auto;
-            margin-right: auto;
-            border: none;
-            display: block;
-            height: 43px;
-            line-height: 43px;
-            font-size: 0.938rem;
-            text-decoration: none;
-            text-align: center;
-            border-radius: 60px;
-            box-sizing: border-box;
-            color: #FCFCFC;
-            background: #A6A5A3;
-            cursor: pointer;
-            &.active{
-              background: #151009;
-            }
-          }
-        }
-      .select-list{
-        .select-item{
-          margin-top: 7px;
-          .label{
-            font-size: 0.813rem;
-            line-height: 1.385em;
-            color: #4A4A4A;
-          }
-          select{
-            display: block;
-            box-sizing: border-box;
-            width: 100%;
-            height: 40px;
-            padding: 0;
-            font-size: 0.938rem;
-            font-weight: 600;
-            line-height: 39px;
-            border: none;
-            border-bottom: 1px dotted #4A4A4A;
-            outline: 0;
-            border-radius: 0;
-            -webkit-appearance: none;
-            -moz-appearance: none;
-            appearance: none;
-            background: url('@/assets/img/icon-arrowselect.svg') center right no-repeat;
-          }
-        }
-      }
-      .section-confirm{
-        background: #F5F5F5;
-        box-sizing: border-box;
-        padding: 0 14px 25px;
-        margin-top: 30px;
-        .img-box{
-          width: 100%;
-          padding: 20px 0 15px;
-          img{
-            width: 100%;
-          }
-        }
-        .confirm-text{
-          margin-top: 11px;
-          font-size: 0.813rem;
-          line-height: 1.385em;
-          border-bottom: 1px dotted #DFDFDF;
-          padding-bottom: 20px;
-          a{
-            text-decoration: underline;
-            color: #0098FF;
-          }
-          .text-tit{
-            font-weight: bold;
-          }
-        }
-      }
-    }
-    .box-right{
-      width: 288px;
-      position: fixed;
-      transition: transform 0.3s;
-      top: 213px;
-      right:calc((100% - 1060px) / 2 + 30px);
-      background: #F1F9FF;
-      padding: 20px 14px 25px;
-      color: #4A4A4A;
-      &.v_scroll { transform:translateY(-100%); }
-      &.v_fixed{
-
-      }
-      .fixed-box-right{
-        .item{
-          text-align: left;
-          font-size: 0.938rem;
-          line-height: 1.467em;
-          margin-bottom: 4px;
-          .left{
-            width:110px;
-          }
-          div{
-            display: inline-block;
-          }
-          &.total{
-            font-weight: bold;
-            .right{
-              font-size: 1.250rem;
-              line-height: 1.250em;
-            }
-          }
-        }
-        .checkout-btn{
-          margin-top: 24px;
-          width: 100%;
-          background: #A6A5A3;
-          border-radius: 60px;
-          height: 43px;
-          line-height: 43px;
-          color: #FCFCFC;
-          cursor: pointer;
-          text-align: center;
-          &.active{
-            background: #151009;
-          }
-        }
-      }
-    }
-  }
+  @import "./home.scss";
+  @import "./shopcart.scss";
 }
 </style>

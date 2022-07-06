@@ -7,11 +7,11 @@ const routes = [
     name: 'home',
     component: Home
   },
-  {
-    path: '/ShopCar/:cartGuid/:expiryTime',
-    name: 'ShopCar',
-    component: () => import('../views/ShopCar.vue')
-  }
+  // {
+  //   path: '/ShopCar/:cartGuid/:expiryTime',
+  //   name: 'ShopCar',
+  //   component: () => import('../views/ShopCar.vue')
+  // }
 ]
 
 const router = createRouter({
