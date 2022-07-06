@@ -86,7 +86,7 @@
               </div>
             </div>
             <div class="confirm-btn">
-              <div class="active btn" :class="confirmSeats?'active':''" @click="confirmSeat">Confirm Seats</div>
+              <div class="btn" :class="confirmSeats?'active':''" @click="confirmSeat">Confirm Seats</div>
             </div>
           </div>
           <div class="select-tit notfirst" v-if="!confirmSeats&&ticketTypeList.length>0">Select Ticket Type</div>
@@ -103,18 +103,11 @@
                 <div class="s_label">No. of Tickets</div>
                 <select class="s_select" @change="selectTicket(m,$event)">
                   <option value="0">0</option>
-                  <template v-if="ticketsQuantity-selectQuantity>0">
-                    <option :value="n" v-for="n in (ticketsQuantity-selectQuantity)" :key="'quantity_'+n" >{{n}}</option>
+                  <template v-if="ticketsQuantity-calcQuantity(m)>0">
+                    <option :value="n" v-for="n in (ticketsQuantity-calcQuantity(m))" :key="'quantity_'+n" >{{n}}</option>
                   </template>
-                  <template v-if="ticketsQuantity-selectQuantity==0&&unselectedIndex.indexOf(m)==-1">
-                    <template v-for="(selected) in selectedIndex">
-                      <template v-if="selected.key==m">
-                        <template v-for="n in selected.value" :key="'quantity_'+n">
-                          <option :value="n" selected v-if="n==selected.value">{{n}}</option>
-                          <option :value="n" v-else>{{n}}</option>
-                        </template>
-                      </template>
-                    </template>
+                  <template v-if="ticketsQuantity-calcQuantity(m)==0">
+
                   </template>
                 </select>
               </div>
@@ -126,17 +119,17 @@
         <div class="fixed-box-right">
           <div class="subtotal item">
             <div class="left">Subtotal</div>
-            <div class="right">PHP 0.00</div>
+            <div class="right">PHP {{_Subtotal}}</div>
           </div>
           <div class="booking-fee item">
             <div class="left">Booking Fee</div>
-            <div class="right">PHP 0.00</div>
+            <div class="right">PHP {{_BookingFee}}</div>
           </div>
           <div class="total item">
             <div class="left">Total</div>
-            <div class="right">PHP 0.00</div>
+            <div class="right">PHP {{_Total}}</div>
           </div>
-          <div class="checkout-btn">Check Out</div>
+          <div class="checkout-btn" :class="checkoutActive?'active':''">Check Out</div>
         </div>
       </div>
     </div>
@@ -168,11 +161,12 @@ export default {
       priceCatId:null,
       mode:null,
       ticketsQuantity:0,
-      selectQuantity:0,
-      tmpList:[],
-      selectedIndex:[],
-      unselectedIndex:[],
       _ticketsQuantity:0,
+      selectQuantityObj:[],
+      _Subtotal:0,
+      _BookingFee:0,
+      _Total:0,
+      checkoutActive:false,
     }
   },
   mounted(){
@@ -191,50 +185,60 @@ export default {
     })
   },
   methods:{
-    selectTicket(index,e){
-      let tmp_key = index;
-      let tmp_val = e.target.value;
-      let tmp_obj = {key:tmp_key,value:tmp_val};
-
-      let selectedIndex = this.selectedIndex;
-      let selectQuantity = 0;
-      let unselectedIndex = [];
-      let tmpList = this.tmpList;
-
-      if(tmpList.indexOf(tmp_key)>-1){
-        selectedIndex.map(item=>{
-          if(item.key==tmp_key){
-            item.value = tmp_val;
-          }
-        })
+    calcQuantity(index){
+      let val = this.selectQuantityObj[index].value;
+      let return_val = 0;
+      this.selectQuantityObj.map((item)=>{
+        if(item.key!=index){
+          return_val = return_val + item.value;
+        }
+      })
+      if(val>0){
+        //已经被选择过
+        return_val = return_val;
       }
       else{
-        tmpList.push(tmp_key);
-        selectedIndex.push(tmp_obj);
+        //没有被选择过
+        return_val = return_val + val;
       }
-
-      console.log("tmpList",tmpList);
-      console.log("selectedIndex",selectedIndex);
-
-      let len = this.ticketTypeList.length;
-      for(let x=0;x<len;x++){
-        console.log("x",x);
-        if(tmpList.indexOf(x)==-1){
-          unselectedIndex.push(x);
+      console.log("return_val===",return_val);
+      return return_val;
+    },
+    selectTicket(index,e){
+      let tmp_val = e.target.value;
+      this.selectQuantityObj[index].value = Number(tmp_val);
+      console.log("selectQuantityObj",this.selectQuantityObj);
+      //计算票价
+      this.calcTicketFares();
+    },
+    calcTicketFares(){
+      let _Subtotal = 0;
+      let _BookingFee = 0;
+      let _Quantity = 0;
+      this.selectQuantityObj.map((item,index)=>{
+        if(item.value>0){
+          let _obj = this.ticketTypeList[index];
+          _Subtotal = _Subtotal + Number(_obj.priceValueAmount.amount);
+          _BookingFee = _BookingFee + Number(this.calcFee(_obj.feeList));
+          _Quantity = _Quantity + Number(item.value);
         }
-      }
-
-      selectedIndex.map(item=>{
-        console.log("item===",item);
-        selectQuantity = Number(selectQuantity)+Number(item.value);
       })
-      console.log("unselectedIndex",unselectedIndex);
-      console.log("selectQuantity",selectQuantity);
-
-      this.tmpList = tmpList;
-      this.unselectedIndex = unselectedIndex;
-      this.selectedIndex = selectedIndex;
-      this.selectQuantity = selectQuantity;
+      if(_Quantity-this.ticketsQuantity==0){
+        this.checkoutActive = true;
+      }
+      else{
+        this.checkoutActive = false;
+      }
+      this._Subtotal = _Subtotal;
+      this._BookingFee = _BookingFee;
+      this._Total = _Subtotal + _BookingFee;
+    },
+    calcFee(arr){
+      let fee = 0;
+      arr.map(item=>{
+        fee = fee+Number(item.charge.amount);
+      })
+      return fee;
     },
     choseQuantity(e){
       this.modalShow = true;
@@ -287,6 +291,12 @@ export default {
         if(success){
           console.log("res===",res);
           this.ticketTypeList = res.data;
+          let selectQuantityObj = [];
+          res.data.map((item,index)=>{
+            selectQuantityObj.push({key:index,value:0});
+          })
+          this.selectQuantityObj = selectQuantityObj;
+          console.log("selectQuantityObj",selectQuantityObj);
           this.confirmSeats = false;
         }
       })
@@ -304,6 +314,7 @@ export default {
         if(success){
           console.log("res===",res);
           this.seatAllocation = true;
+          this.confirmActive = false;
         }
       })
     },
@@ -694,6 +705,9 @@ export default {
           color: #FCFCFC;
           cursor: pointer;
           text-align: center;
+          &.active{
+            background: #151009;
+          }
         }
       }
     }
