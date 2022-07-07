@@ -190,20 +190,60 @@
             </div>
           </div>
         </div>
-        <div class="cart-part">
-          <div class="part-tit">Delivery Method</div>
+        <div class="cart-part" v-if="deliveryMethodList&&deliveryMethodList.length>0">
+          <div class="part-tit">Delivery Method<span class="u__titleerror">Required</span></div>
           <div class="part-desc">Please choose a delivery method</div>
-          <div class="part-content"></div>
+          <div class="part-content no-padding">
+            <div class="select-imitation delivery-select">
+              <div class="select-selected" @click="showDeliverySelect=!showDeliverySelect">{{deliveryMethodList[0].code}} - {{deliveryMethodList[0].charge.formatted}}</div>
+              <div class="select-list" v-show="showDeliverySelect">
+                <div class="select-item" v-for="(item,m) in deliveryMethodList" :key="'delivery_'+m" @click="chooseDelivery(m)">
+                  {{item.code}} - {{item.charge.formatted}}
+                </div>
+              </div>
+            </div>
+            <div class="input-imitation">
+              <input type="text" placeholder="First name"/>
+              <div class="u__error">Please enter your first name.</div>
+            </div>
+            <div class="input-imitation">
+              <input type="text" placeholder="Last name"/>
+              <div class="u__error">Please enter your last name.</div>
+            </div>
+            <div class="input-imitation">
+              <input type="text" placeholder="Email"/>
+              <div class="u__error">Please enter a valid email.</div>
+            </div>
+            <div class="s_row">
+              <div class="input-imitation">
+                <input type="text" placeholder="Area Code"/>
+                <div class="u__error">Invalid.</div>
+              </div>
+              <div class="input-imitation">
+                <input type="text" placeholder="Phone Number"/>
+                <div class="u__error">Please enter a valid phone number.</div>
+              </div>
+            </div>
+          </div>
         </div>
-        <div class="cart-part">
-          <div class="part-tit">Payment Method</div>
-          <div class="part-content"></div>
+        <div class="cart-part" v-if="paymentMethodList&&paymentMethodList.length>0">
+          <div class="part-tit">Payment Method<span class="u__titleerror">Required</span></div>
+          <div class="part-content no-padding">
+            <div class="select-imitation payment-select">
+              <div class="select-selected" @click="showPaymentSelect=!showPaymentSelect">
+                <div class="selected-item" v-html="paymentMethodList[0].code"></div>
+              </div>
+              <div class="select-list" v-show="showPaymentSelect">
+                <div class="select-item" v-for="(item,m) in paymentMethodList" :key="'payment_'+m" v-html="item.code"></div>
+              </div>
+            </div>
+          </div>
         </div>
         <div class="cart-part">
           <div class="terms-list" v-if="termsCheckList&&termsCheckList.length>0">
             <div class="terms-item" v-for="(item,m) in termsCheckList" :key="'terms_'+m">
               <div class="part-content terms-content">
-                <div class="part-tit">{{item.title}}</div>
+                <div class="part-tit">{{item.title}}<span class="u__titleerror">Required</span></div>
                 <div class="part-subtit">{{item.subtit}}</div>
                 <div class="part-terms-desc">{{item.desc}}</div>
                 <div class="part-checkbox" v-if="item.checkobj" @click="changeChecked(m)">
@@ -230,6 +270,9 @@
             </div>
           </div>
         </div>
+      </div>
+      <div class="confirm-btn">
+        <div class="btn active" @click="confirmOrder">Confirm Order</div>
       </div>
       <div class="fixed-timer">
         <div class="s_fixed">
@@ -338,6 +381,16 @@ export default {
           },
         }
       ],
+      orderInfo:{
+        email:'',
+        firstname:'',
+        lastname:'',
+        areacode:'',
+        phonenumber:'',
+        remarks:''
+      },
+      showDeliverySelect:false,
+      showPaymentSelect:false,
       //controll bar
       showHome:false,
       showCart:true,
@@ -362,6 +415,37 @@ export default {
   },
   methods:{
     //shopcart part
+    chooseDelivery(){
+      this.orderInfo
+    },
+    confirmOrder(){
+      this.$http.getHttp({
+        name:'submitPrepayment',
+        params:{
+          api:'submitPrepayment',
+          cartguid:this.cartGuid,
+          email:'',
+          firstname:'',
+          lastname:'',
+          areacode:'',
+          phonenumber:'',
+          remarks:''
+        }
+      },(res,success)=>{
+        if(success){
+          console.log("res===",res);
+          this.eventName = res.data.eventName;
+          this.venue = res.data.venue;
+          this.dateDay = res.data.dateDay;
+          this.dateTimeDuration = res.data.dateTimeDuration;
+          this.lineItemList = res.data.lineItemList;
+          this.lineItemTotal = res.data.lineItemTotal;
+          this.deliveryMethodList = res.data.deliveryMethodList;
+          this.paymentMethodList = res.data.paymentMethodList;
+          this.expiryTime = res.data.expiryTime;
+        }
+      })
+    },
     goShopCart(){
       this.showHome = false;
       this.showCart = true;
@@ -681,6 +765,29 @@ export default {
             padding-left: 1.2em;
           }
         }
+      }
+    }
+  }
+  .confirm-btn{
+    padding-top: 25px;
+    .btn{
+      width: 288px;
+      margin-left: auto;
+      margin-right: auto;
+      border: none;
+      display: block;
+      height: 43px;
+      line-height: 43px;
+      font-size: 0.938rem;
+      text-decoration: none;
+      text-align: center;
+      border-radius: 60px;
+      box-sizing: border-box;
+      color: #FCFCFC;
+      background: #A6A5A3;
+      cursor: pointer;
+      &.active{
+        background: #151009;
       }
     }
   }

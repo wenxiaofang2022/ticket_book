@@ -22,7 +22,7 @@ let apiList = {
       promoCode:''
     },
     type: "get"
-  },
+  },//not used
   geteventshowdatetime:{
     url: '/sistic/api/sistic',
     params: {
@@ -54,7 +54,7 @@ let apiList = {
       api:'starttimer'
     },
     type: "get"
-  },
+  },//not used
   getSeatOffer:{
     url: '/sistic/api/sistic',
     params: {
@@ -98,14 +98,14 @@ let apiList = {
       flipBn:''
     },
     type: "get"
-  },
+  },//not used
   clearcart:{
     url: '/sistic/api/sistic',
     params: {
       api:'clearcart',
     },
     type: "get"
-  },
+  },//not used
   getcart:{
     url: '/sistic/api/sistic',
     params: {
@@ -136,7 +136,7 @@ let apiList = {
       priceclasscode:''
     },
     type: "get"
-  }
+  },//not used
 };
 
 //获取AJAX请求 数据

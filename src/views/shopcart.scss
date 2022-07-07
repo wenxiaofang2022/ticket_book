@@ -1,4 +1,5 @@
 .shop-car-container{
+  padding-bottom: 60px;
   .nodata-box{
     max-width: 1060px;
     margin-left: auto;
@@ -47,6 +48,23 @@
         font-family: 'Agency FB';
         font-size: 1.875rem;
         font-weight: 400;
+        line-height: 1.167em;
+        .u__titleerror{
+          display: inline-block;
+          // display: none;
+          background: #FA3550;
+          color: #FCFCFC;
+          font-family: 'Rubik', sans-serif;
+          font-weight: 300;
+          font-size: 0.813rem;
+          line-height: 1.385em;
+          box-sizing: border-box;
+          padding: 4px 10px 3px;
+          border-radius: 60px;
+          position: relative;
+          transform: translateY(-3px);
+          margin-left: 14px;
+        }
       }
       .part-subtit{
         margin-top: 15px;
@@ -145,6 +163,130 @@
           font-size: 0.813rem;
           line-height: 1.385em;
           padding: 22px 0px 0px;
+        }
+        &.no-padding{
+          padding: 0px;
+        }
+        .select-imitation{
+          margin-top: 24px;
+          width: 100%;
+          height: 65px;
+          line-height: 65px;
+          position: relative;
+          border: 1px solid #ccc;
+          border-color: #0098FF;
+          &.payment-select{
+            width: 50%;
+            .select-list{
+              .select-item{
+                font-size: 0px;
+                border-top: 1px dotted #ccc;
+                &:nth-child(1){
+                  border-top: none;
+                }
+                label{
+                  width: 100%;
+                  height: 65px;
+                  display: inline-block;
+                  position: relative;
+                  svg{
+                    position: absolute;
+                    left:50%;
+                    top:50%;
+                    transform: translateX(-50%) translateY(-50%);
+                  }
+                }
+              }
+            }
+          }
+          .select-selected{
+            width: 100%;
+            height: 65px;
+            line-height: 65px;
+            position: relative;
+            z-index: 12;
+            padding: 0 14px;
+            cursor: pointer;
+            overflow: hidden;
+            .selected-item{
+              font-size: 0px;
+              border-top: 1px dotted #ccc;
+              width: 100%;
+              height: 65px;
+              input{
+                display: none;
+              }
+              &:nth-child(1){
+                border-top: none;
+              }
+              label{
+                svg{
+                  position: absolute;
+                  left:50%;
+                  top:50%;
+                  transform: translateX(-50%) translateY(-50%);
+                }
+              }
+            }
+          }
+          .select-list{
+            position: absolute;
+            left: 0px;
+            top: 65px;
+            width: 100%;
+            line-height: 65px;
+            background: #fff;
+            box-shadow: 0 0 3px rgba(0,0,0,0.2);
+            z-index: 10;
+            .select-item{
+              width: 100%;
+              height: 65px;
+              line-height: 65px;
+              padding: 0 14px;
+            }
+          }
+        }
+        .s_row{
+          display: flex;
+          justify-content: space-between;
+          position: relative;
+          width: 100%;
+          .input-imitation{
+            &:nth-child(1){
+              width: 120px;
+              position: relative;
+            }
+            &:nth-child(2){
+              width: calc(100% - 136px);
+            }
+          }
+        }
+        .input-imitation{
+          padding-top: 22px;
+          input{
+            background: none;
+            border: none;
+            border-bottom: 1px dotted #4A4A4A;
+            width: 100%;
+            font-size: 0.938rem;
+            line-height: 1.467em;
+            box-sizing: border-box;
+            padding: 0 0 8px;
+            color: #151009;
+            outline: 0;
+            border-radius: 0;
+            -webkit-appearance: none;
+            font-family: 'Rubik', sans-serif;
+            font-weight: 300;
+            &::placeholder { color:#4A4A4A; }
+          }
+          .u__error{
+            // display: none;
+            color: #FA3550;
+            font-weight: 600;
+            font-size: 0.813rem;
+            line-height: 1.385em;
+          }
         }
         .tickets-info{
           .eventName{

@@ -163,29 +163,6 @@
         }
       }
     }
-    .confirm-btn{
-        padding-top: 25px;
-        .btn{
-          width: 288px;
-          margin-left: auto;
-          margin-right: auto;
-          border: none;
-          display: block;
-          height: 43px;
-          line-height: 43px;
-          font-size: 0.938rem;
-          text-decoration: none;
-          text-align: center;
-          border-radius: 60px;
-          box-sizing: border-box;
-          color: #FCFCFC;
-          background: #A6A5A3;
-          cursor: pointer;
-          &.active{
-            background: #151009;
-          }
-        }
-      }
     .select-list{
       .select-item{
         margin-top: 7px;
